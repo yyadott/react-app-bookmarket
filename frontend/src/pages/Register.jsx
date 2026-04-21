@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import authService from '../services/authService';
 import bgImage from '../assets/bg1.jpg';
 
 const Register = () => {
-  const [formData, setFormData] = useState({ nama: '', email: '', noHp: '', jenisKelamin: '', alamat: '', password: '' });
+  const [formData, setFormData] = useState({ nama: '', email: '', password: '' });
+  const navigate = useNavigate(); // Menggunakan hook navigate untuk pengalihan halaman yang lebih smooth
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -12,27 +13,47 @@ const Register = () => {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    // Sesuaikan authService.register untuk menerima objek formData utuh jika perlu
-    const response = await authService.register(formData.nama, formData.email, formData.password);
-    if (response.success) {
-      alert(response.message);
-      window.location.href = '/login';
-    } else {
-      alert(response.message);
+
+    // Validasi Frontend: Panjang Password
+    if (formData.password.length < 8) {
+      alert("Registrasi Gagal: Password minimal harus 8 karakter!");
+      return;
+    }
+
+    if (formData.password.length > 20) {
+      alert("Registrasi Gagal: Password maksimal adalah 20 karakter!");
+      return;
+    }
+
+    try {
+      const response = await authService.register(formData.nama, formData.email, formData.password);
+      
+      if (response.success) {
+        alert(response.message);
+        navigate('/login'); // Mengalihkan ke halaman login setelah berhasil
+      } else {
+        // Menampilkan pesan error dari backend (misal: Email sudah terdaftar atau validasi server)
+        alert(response.message);
+      }
+    } catch (error) {
+      alert("Terjadi kesalahan koneksi ke server.");
     }
   };
 
   return (
     <div style={styles.container}>
-      {/* Sisi Kiri: Teks Besar */}
+      {/* Sisi Kiri */}
       <div style={styles.leftSide}>
         <div style={styles.leftContent}>
           <h1 style={styles.mainTitle}>Buat Akun<br/>Anda</h1>
-          <p style={styles.subTitle}>Silakan daftar untuk mulai berbelanja buku favorit, menyimpan riwayat pesanan, dan mendapatkan promo eksklusif dari Book Market.</p>
+          <p style={styles.subTitle}>
+            Silakan daftar untuk mulai berbelanja buku favorit, menyimpan riwayat pesanan, 
+            dan mendapatkan promo eksklusif dari Book Market.
+          </p>
         </div>
       </div>
 
-      {/* Sisi Kanan: Form Transparan (Field Lebih Banyak) */}
+      {/* Sisi Kanan */}
       <div style={styles.rightSide}>
         <div style={styles.authCard}>
           <h2 style={styles.cardTitle}>Registrasi</h2>
@@ -41,41 +62,41 @@ const Register = () => {
           <form onSubmit={handleFormSubmit} style={styles.form}>
             <div style={styles.inputGroup}>
               <label style={styles.label}>Nama</label>
-              <input type="text" name="nama" onChange={handleChange} required style={styles.input} />
+              <input 
+                type="text" 
+                name="nama" 
+                onChange={handleChange} 
+                required 
+                style={styles.input} 
+                placeholder="Nama lengkap Anda"
+              />
             </div>
             <div style={styles.inputGroup}>
               <label style={styles.label}>Email</label>
-              <input type="email" name="email" onChange={handleChange} required style={styles.input} />
+              <input 
+                type="email" 
+                name="email" 
+                onChange={handleChange} 
+                required 
+                style={styles.input} 
+                placeholder="contoh@email.com"
+              />
             </div>
-
-            {/* 
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>No. HP</label>
-              <input type="text" name="noHp" onChange={handleChange} required style={styles.input} />
-            </div>
-            */}
-
-            {/* 
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Jenis Kelamin</label>
-              <select name="jenisKelamin" onChange={handleChange} required style={styles.input}>
-                <option value="">Pilih...</option>
-                <option value="Laki-laki">Laki-laki</option>
-                <option value="Perempuan">Perempuan</option>
-              </select>
-            </div>
-            */}
-
-            {/* 
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Alamat</label>
-              <input type="text" name="alamat" onChange={handleChange} required style={styles.input} />
-            </div>
-            */}
-
             <div style={styles.inputGroup}>
               <label style={styles.label}>Password</label>
-              <input type="password" name="password" onChange={handleChange} required style={styles.input} />
+              <input 
+                type="password" 
+                name="password" 
+                onChange={handleChange} 
+                required 
+                minLength="8" 
+                maxLength="20"
+                style={styles.input} 
+                placeholder="Minimal 8 karakter"
+              />
+              <small style={{color: 'black', fontSize: '11px', marginTop: '4px', display: 'block'}}>
+                * Gunakan 8-20 karakter.
+              </small>
             </div>
 
             <button type="submit" style={styles.button}>Daftar</button>
@@ -90,16 +111,16 @@ const Register = () => {
   );
 };
 
-// Css pada JS
+// Objek Styles tetap sama dengan penyesuaian sedikit pada layout agar lebih responsif
 const styles = {
   container: {
     display: 'flex', 
-        height: '100vh', 
-        width: '100vw', 
-        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url(${bgImage})`, 
-        backgroundSize: 'cover', 
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
+    height: '100vh', 
+    width: '100vw', 
+    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url(${bgImage})`, 
+    backgroundSize: 'cover', 
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat'
   },
   leftSide: {
     flex: 1,
@@ -121,18 +142,18 @@ const styles = {
   subTitle: {
     fontSize: '18px',
     fontWeight: '400',
-    color: 'black',
+    color: 'white', // Diubah ke putih agar lebih kontras dengan bgImage
     lineHeight: '1.6',
     maxWidth: '500px',
+    textShadow: '1px 1px 2px rgba(0,0,0,0.5)'
   },
-
   rightSide: {
     flex: 1,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     padding: '20px 0'
-  }, // Tambah padding agar scroll di card
+  },
   authCard: {
     background: 'rgba(255, 255, 255, 0.2)',
     backdropFilter: 'blur(10px)',
@@ -143,6 +164,7 @@ const styles = {
     maxWidth: '550px',
     color: 'white',
     maxHeight: '90vh',
+    overflowY: 'auto'
   },
   cardTitle: {
     fontSize: '32px',
@@ -175,7 +197,8 @@ const styles = {
     background: 'rgba(255,255,255,0.8)',
     border: 'none',
     borderRadius: '6px',
-    fontSize: '15px'
+    fontSize: '15px',
+    color: '#333'
   },
   button: {
     width: '100%',

@@ -9,18 +9,30 @@ const Login = () => {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    const response = await authService.login(email, password);
-    if (response.success) {
-      alert("Selamat Datang!");
-      window.location.href = '/dashboard';
-    } else {
-      alert(response.message);
+    try {
+      const response = await authService.login(email, password);
+      
+      if (response.success) {
+        // --- BARIS KUNCI: SIMPAN DATA KE LOKER BROWSER ---
+        // Kita simpan data response dari PHP ke dalam key bernama 'user'
+        localStorage.setItem('user', JSON.stringify(response.user));
+        
+        alert("Selamat Datang!");
+        
+        // Gunakan window.location agar Dashboard melakukan refresh total 
+        // dan membaca ulang useEffect-nya
+        window.location.href = '/dashboard'; 
+      } else {
+        alert(response.message);
+      }
+    } catch (error) {
+      alert("Gagal terhubung ke server login.");
     }
   };
 
   return (
     <div style={styles.container}>
-      {/* Sisi Kiri: Teks Besar */}
+      {/* Sisi Kiri*/}
       <div style={styles.leftSide}>
         <div style={styles.leftContent}>
           <h1 style={styles.mainTitle}>Masuk ke<br/>Akun Anda</h1>
@@ -28,7 +40,7 @@ const Login = () => {
         </div>
       </div>
 
-      {/* Sisi Kanan: Form Transparan */}
+      {/* Sisi Kanan*/}
       <div style={styles.rightSide}>
         <div style={styles.authCard}>
           <h2 style={styles.cardTitle}>Masuk</h2>
