@@ -5,7 +5,7 @@
  */
 
 // URL Dasar API Backend sesuai dengan lokasi folder di Laragon [cite: 84]
-const API_URL = "http://localhost/bookmarket/backend/api";
+const API_URL = "http://localhost/react-app-bookmarket/backend/api";
 
 const authService = {
   

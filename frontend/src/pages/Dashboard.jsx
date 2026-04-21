@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import bookService from '../services/bookService';
 import heroImage from '../assets/hero2.png'; 
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const [books, setBooks] = useState([]);
+  const navigate = useNavigate();
 
   // Data Dummy Manual sesuai UI yang diupload
   const dummyBooks = [
@@ -128,7 +130,11 @@ const Dashboard = () => {
         <div style={styles.catalogWrapper}>
           <section style={styles.catalogGrid}>
             {books.map((book) => (
-              <div key={book.id_buku} style={styles.bookCard}>
+              <div 
+                key={book.id_buku} 
+                style={{ ...styles.bookCard, cursor: "pointer" }}
+                onClick={() => navigate(`/buku/${book.id_buku}`)}
+              >
                 <div style={styles.bookImageArea}>
                    <img 
                     src={book.img} 
