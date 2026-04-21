@@ -290,6 +290,12 @@ const currentBooks = sortedBooks.slice(
           {currentBooks.map((book) => (
           <div key={book.id_buku} style={styles.bookCard}>
                 {/* Gambar Buku */}
+            {books.map((book) => (
+              <div 
+                key={book.id_buku} 
+                style={{ ...styles.bookCard, cursor: "pointer" }}
+                onClick={() => navigate(`/buku/${book.id_buku}`)}
+              >
                 <div style={styles.bookImageArea}>
                   <img
                     src={book.img}
