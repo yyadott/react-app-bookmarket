@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard'; // Pastikan sudah di-import
@@ -9,8 +10,9 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Arahkan halaman awal ke login */}
-        <Route path="/" element={<Navigate to="/login" />} />
+        {/* Arahkan halaman awal ke dashboard */}
+        <Route path="/" element={<Navigate to="/dashboard" />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
