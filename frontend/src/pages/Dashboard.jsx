@@ -288,37 +288,34 @@ const currentBooks = sortedBooks.slice(
        <div style={styles.catalogWrapper}>
           <section style={styles.catalogGrid}>
           {currentBooks.map((book) => (
-          <div key={book.id_buku} style={styles.bookCard}>
-                {/* Gambar Buku */}
-            {books.map((book) => (
-              <div 
-                key={book.id_buku} 
-                style={{ ...styles.bookCard, cursor: "pointer" }}
-                onClick={() => navigate(`/buku/${book.id_buku}`)}
-              >
-                <div style={styles.bookImageArea}>
-                  <img
-                    src={book.img}
-                    alt={book.judul}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/100x140?text=No+Image'; }}
-                  />
-                </div>
+            <div 
+              key={book.id_buku} 
+              style={{ ...styles.bookCard, cursor: "pointer" }}
+              onClick={() => navigate(`/buku/${book.id_buku}`)}
+            >
+              <div style={styles.bookImageArea}>
+                <img
+                  src={book.img}
+                  alt={book.judul}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/100x140?text=No+Image'; }}
+                />
+              </div>
 
-                {/* Info Buku */}
-                <div style={styles.bookInfo}>
-                  <div>
-                    <h4 style={styles.bookTitle}>{book.judul}</h4>
-                    <p style={styles.author}>{book.penulis}</p>
-                    <StarRating rating={4} />
-                  </div>
-                  <div style={styles.cardFooter}>
-                    <p style={styles.price}>Rp{parseInt(book.harga).toLocaleString('id-ID')}</p>
-                    <button style={styles.cartBtn}>Masukkan Keranjang</button>
-                  </div>
+              {/* Info Buku */}
+              <div style={styles.bookInfo}>
+                <div>
+                  <h4 style={styles.bookTitle}>{book.judul}</h4>
+                  <p style={styles.author}>{book.penulis}</p>
+                  <StarRating rating={4} />
+                </div>
+                <div style={styles.cardFooter}>
+                  <p style={styles.price}>Rp{parseInt(book.harga).toLocaleString('id-ID')}</p>
+                  <button style={styles.cartBtn}>Masukkan Keranjang</button>
                 </div>
               </div>
-            ))}
+            </div>
+          ))}
           </section>
 
          {/* Pagination */}
