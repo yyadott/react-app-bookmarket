@@ -1,237 +1,177 @@
-<?php include 'header.php'; ?>
-
 <?php
 
-// AMBIL KATEGORI
-$kategori = mysqli_query($koneksi, "
-    SELECT *
-    FROM kategori
-    ORDER BY namakategori ASC
-");
+if (isset($_POST['tambah'])) {
 
-// FILTER
-$where = "";
+    $namaproduk = mysqli_real_escape_string($koneksi, $_POST['namaproduk']);
+    $deskripsi   = mysqli_real_escape_string($koneksi, $_POST['deskripsi']);
+    $harga       = mysqli_real_escape_string($koneksi, $_POST['harga']);
+    $kategori_id = mysqli_real_escape_string($koneksi, $_POST['kategori_id']);
+    $stok       = mysqli_real_escape_string($koneksi, $_POST['stok']);
 
-// FILTER KATEGORI
-if (isset($_GET['kategori'])) {
+    $foto = $_FILES['foto']['name'];
+    $tmp  = $_FILES['foto']['tmp_name'];
 
-    $kategori_id = intval($_GET['kategori']);
+    $folder = "../assets/uploads/produk/";
 
-    $where = "WHERE p.kategori_id='$kategori_id'";
+    if (!is_dir($folder)) {
+        mkdir($folder, 0777, true);
+    }
+
+    $nama_foto = time() . "_" . basename($foto);
+
+    move_uploaded_file($tmp, $folder . $nama_foto);
+
+    mysqli_query($koneksi, "INSERT INTO produk 
+        (namaproduk,  deskripsi, harga, stok, foto, kategori_id) 
+        VALUES 
+        ('$namaproduk','$deskripsi','$harga','$stok','$nama_foto','$kategori_id')");
+
+    echo "<script>alert('Data produk berhasil ditambahkan');</script>";
+    echo "<script>location='index.php?page=produk';</script>";
 }
-
-// SEARCH
-if (isset($_GET['search'])) {
-
-    $search = mysqli_real_escape_string(
-        $koneksi,
-        $_GET['search']
-    );
-
-    $where .= $where
-        ? " AND p.namaproduk LIKE '%$search%'"
-        : "WHERE p.namaproduk LIKE '%$search%'";
-}
-
-// PRODUK
-$produk = mysqli_query($koneksi, "
-    SELECT
-        p.*,
-        k.namakategori
-    FROM produk p
-    LEFT JOIN kategori k
-    ON p.kategori_id = k.id
-    $where
-    ORDER BY p.id DESC
-");
-
 ?>
 
-<div class="container py-4">
-
-    <!-- HEADER -->
-    <div class="mb-4">
-
-        <h3 class="fw-bold mb-1">
-            Semua Produk
-        </h3>
-
-        <p class="text-muted mb-0">
-            Temukan menu catering favorit Anda
-        </p>
-
+<div class="row page-titles mx-0">
+    <div class="col">
+        <h4>Data Produk</h4>
     </div>
-
-    <!-- SEARCH -->
-    <form method="GET" class="mb-4">
-
-        <div class="input-group shadow-sm rounded-4 overflow-hidden">
-
-            <span class="input-group-text bg-white border-0">
-                <i class="bi bi-search text-muted"></i>
-            </span>
-
-            <input type="text"
-                name="search"
-                class="form-control border-0 py-3"
-                placeholder="Cari produk..."
-                value="<?= $_GET['search'] ?? '' ?>">
-
-            <?php if (isset($_GET['kategori'])) { ?>
-
-                <input type="hidden"
-                    name="kategori"
-                    value="<?= $_GET['kategori'] ?>">
-
-            <?php } ?>
-
-            <button class="btn btn-primary px-4">
-                Cari
-            </button>
-
-        </div>
-
-    </form>
-
-    <!-- KATEGORI -->
-    <div class="d-flex overflow-auto pb-3 gap-2 no-scrollbar mb-4">
-
-        <a href="produk.php"
-            class="btn <?= !isset($_GET['kategori']) ? 'btn-primary text-white' : 'btn-outline-secondary' ?> rounded-pill px-4 text-nowrap">
-
-            Semua
-
-        </a>
-
-        <?php while ($k = mysqli_fetch_assoc($kategori)) { ?>
-
-            <a href="produk.php?kategori=<?= $k['id'] ?>"
-                class="btn <?= (isset($_GET['kategori']) && $_GET['kategori'] == $k['id']) ? 'btn-primary text-white' : 'btn-outline-secondary' ?> rounded-pill px-4 text-nowrap">
-
-                <?= $k['namakategori'] ?>
-
-            </a>
-
-        <?php } ?>
-
-    </div>
-
-    <!-- PRODUK -->
-    <div class="row g-3">
-
-        <?php if (mysqli_num_rows($produk) > 0) { ?>
-
-            <?php while ($p = mysqli_fetch_assoc($produk)) { ?>
-
-                <div class="col-6 col-md-4 col-lg-3">
-
-                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
-
-                        <div class="position-relative">
-
-                            <?php if ($p['foto']) { ?>
-
-                                <img src="assets/uploads/produk/<?= $p['foto'] ?>"
-                                    class="card-img-top"
-                                    style="height:220px; object-fit:cover;">
-
-                            <?php } else { ?>
-
-                                <img src="https://via.placeholder.com/300x300"
-                                    class="card-img-top">
-
-                            <?php } ?>
-
-                            <span class="position-absolute top-0 start-0 m-2 badge bg-primary rounded-pill px-3 py-2">
-
-                                <?= $p['namakategori'] ?>
-
-                            </span>
-
-                        </div>
-
-                        <div class="card-body d-flex flex-column">
-
-                            <h6 class="fw-bold mb-1">
-
-                                <?= $p['namaproduk'] ?>
-
-                            </h6>
-
-                            <p class="text-muted small mb-3 flex-grow-1">
-
-                                <?= substr($p['deskripsi'], 0, 70) ?>...
-
-                            </p>
-
-                            <div class="d-flex justify-content-between align-items-center">
-
-                                <div>
-
-                                    <small class="text-muted">
-                                        Harga
-                                    </small>
-
-                                    <h6 class="fw-bold text-primary mb-0">
-
-                                        Rp <?= number_format($p['harga']) ?>
-
-                                    </h6>
-
-                                </div>
-
-                                <a href="produkdetail.php?id=<?= $p['id'] ?>"
-                                    class="btn btn-primary btn-sm rounded-pill px-3">
-
-                                    Detail
-
-                                </a>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            <?php } ?>
-
-        <?php } else { ?>
-
-            <div class="col-12">
-
-                <div class="card border-0 shadow-sm rounded-4">
-
-                    <div class="card-body text-center py-5">
-
-                        <i class="bi bi-bag-x display-3 text-muted"></i>
-
-                        <h5 class="fw-bold mt-3">
-                            Produk Tidak Ditemukan
-                        </h5>
-
-                        <p class="text-muted mb-4">
-                            Produk yang Anda cari belum tersedia
-                        </p>
-
-                        <a href="produk.php"
-                            class="btn btn-primary rounded-pill px-4">
-
-                            Lihat Semua Produk
-
-                        </a>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        <?php } ?>
-
-    </div>
-
 </div>
 
-<?php include 'footer.php'; ?>
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between mb-3">
+                <h5 class="mb-0">Daftar Produk</h5>
+
+                <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalTambah">
+                    + Tambah Produk
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped" id="datatable">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama Produk</th>
+                            <th>Nama Kategori</th>
+                            <th>Deskripsi</th>
+                            <th>Harga</th>
+                            <th>Stok</th>
+                            <th>Foto</th>
+                            <th width="150">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <?php
+                        $no = 1;
+                        $data = mysqli_query($koneksi, "SELECT produk.*, kategori.namakategori FROM produk LEFT JOIN kategori ON produk.kategori_id = kategori.id ORDER BY produk.id DESC");
+
+                        while ($row = mysqli_fetch_assoc($data)) {
+                        ?>
+                            <tr>
+                                <td><?= $no++ ?></td>
+                                <td><?= $row['namaproduk'] ?></td>
+                                <td><?= $row['namakategori'] ?? '-' ?></td>
+                                <td><?= $row['deskripsi'] ?></td>
+                                <td>Rp. <?= number_format($row['harga']) ?></td>
+                                <td><?= $row['stok'] ?></td>
+                                <td>
+                                    <?php if ($row['foto']) { ?>
+                                        <img src="../assets/uploads/produk/<?= $row['foto'] ?>" width="80" style="border-radius:8px;">
+                                    <?php } else { ?>
+                                        <span class="text-muted">Tidak ada</span>
+                                    <?php } ?>
+                                </td>
+                                <td>
+
+                                    <a href="index.php?page=produkedit&id=<?= $row['id'] ?>"
+                                        class="btn btn-warning btn-sm">
+                                        Edit
+                                    </a>
+
+                                    <a href="index.php?page=produkhapus&id=<?= $row['id'] ?>"
+                                        class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Yakin hapus produk ini?')">
+                                        Hapus
+                                    </a>
+
+                                </td>
+                            </tr>
+                        <?php } ?>
+
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalTambah">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <form method="POST" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Produk</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="form-group">
+                        <label>Nama Produk</label>
+                        <input type="text" name="namaproduk" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Kategori</label>
+                        <select name="kategori_id" class="form-control" required>
+                            <option value="" selected disabled>-- Pilih Kategori --</option>
+                            <?php
+                            $kategoriData = mysqli_query($koneksi, "SELECT * FROM kategori ORDER BY namakategori ASC");
+                            while ($kategori = mysqli_fetch_assoc($kategoriData)) {
+                                echo "<option value='" . $kategori['id'] . "'>" . $kategori['namakategori'] . "</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Deskripsi</label>
+                        <textarea name="deskripsi" class="form-control" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Harga</label>
+                        <input type="number" name="harga" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Stok</label>
+                        <input type="number" name="stok" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Foto</label>
+                        <input type="file" name="foto" class="form-control" accept="image/*" required>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" name="tambah" class="btn btn-primary">
+                        Simpan
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        Batal
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>

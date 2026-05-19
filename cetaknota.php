@@ -1,6 +1,6 @@
 <?php
 
-include 'koneksi.php';
+include '../koneksi.php';
 
 $id = intval($_GET['id']);
 
@@ -250,11 +250,27 @@ $pembayaran = mysqli_fetch_assoc(mysqli_query($koneksi, "
                 ?>
 
                     <tr>
-                        <td><?= $no++ ?></td>
-                        <td><?= $d['namaproduk'] ?></td>
-                        <td>Rp <?= number_format($d['harga']) ?></td>
-                        <td><?= $qty ?></td>
-                        <td>Rp <?= number_format($subtotal) ?></td>
+
+                        <td>
+                            <?= $no++ ?>
+                        </td>
+
+                        <td>
+                            <?= $d['namaproduk'] ?>
+                        </td>
+
+                        <td>
+                            Rp <?= number_format($d['harga']) ?>
+                        </td>
+
+                        <td>
+                            <?= $qty ?>
+                        </td>
+
+                        <td>
+                            Rp <?= number_format($subtotal) ?>
+                        </td>
+
                     </tr>
 
                 <?php } ?>

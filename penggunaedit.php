@@ -1,33 +1,33 @@
 <?php
 
-$id = $_SESSION['user']['id'];
-$data = mysqli_query($koneksi, "SELECT * FROM users WHERE id='$id'");
+$id = intval($_GET['id']);
+
+$data = mysqli_query($koneksi, "SELECT * FROM users WHERE id='$id' AND role='User'");
 $row = mysqli_fetch_assoc($data);
 
 if (!$row) {
-    echo "<script>alert('Data tidak ditemukan');location='index.php?page=dashboard';</script>";
+    echo "<script>alert('Data pengguna tidak ditemukan');</script>";
+    echo "<script>location='index.php?page=pengguna';</script>";
     exit;
 }
 
 if (isset($_POST['update'])) {
 
-    $nama          = mysqli_real_escape_string($koneksi, $_POST['nama']);
-    $email         = mysqli_real_escape_string($koneksi, $_POST['email']);
-    $jeniskelamin  = mysqli_real_escape_string($koneksi, $_POST['jeniskelamin']);
-    $nohp          = mysqli_real_escape_string($koneksi, $_POST['nohp']);
-    $alamat        = mysqli_real_escape_string($koneksi, $_POST['alamat']);
+    $nama  = mysqli_real_escape_string($koneksi, $_POST['nama']);
+    $email = mysqli_real_escape_string($koneksi, $_POST['email']);
+    $jeniskelamin = mysqli_real_escape_string($koneksi, $_POST['jeniskelamin']);
+    $nohp = mysqli_real_escape_string($koneksi, $_POST['nohp']);
+    $alamat = mysqli_real_escape_string($koneksi, $_POST['alamat']);
 
-    // CEK EMAIL DUPLIKAT
+    // CEK EMAIL (biar ga double kecuali email dia sendiri)
     $cek = mysqli_query($koneksi, "SELECT * FROM users WHERE email='$email' AND id!='$id'");
 
     if (mysqli_num_rows($cek) > 0) {
-
         echo "<script>alert('Email sudah digunakan!');</script>";
     } else {
 
-        // JIKA PASSWORD DIISI
+        // CEK PASSWORD DIISI ATAU TIDAK
         if (!empty($_POST['password'])) {
-
             $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
             mysqli_query($koneksi, "UPDATE users SET 
@@ -37,33 +37,26 @@ if (isset($_POST['update'])) {
                 jeniskelamin='$jeniskelamin',
                 nohp='$nohp',
                 alamat='$alamat'
-                WHERE id='$id'
-            ");
+                WHERE id='$id'");
         } else {
-
             mysqli_query($koneksi, "UPDATE users SET 
                 nama='$nama',
                 email='$email',
                 jeniskelamin='$jeniskelamin',
                 nohp='$nohp',
                 alamat='$alamat'
-                WHERE id='$id'
-            ");
+                WHERE id='$id'");
         }
 
-        // UPDATE SESSION
-        $_SESSION['user']['nama'] = $nama;
-        $_SESSION['user']['email'] = $email;
-
-        echo "<script>alert('Data profil berhasil diupdate');</script>";
-        echo "<script>location='index.php?page=profile';</script>";
+        echo "<script>alert('Data pengguna berhasil diupdate');</script>";
+        echo "<script>location='index.php?page=pengguna';</script>";
     }
 }
 ?>
 
 <div class="row page-titles mx-0">
     <div class="col">
-        <h4>Edit Profil</h4>
+        <h4>Edit Pengguna</h4>
     </div>
 </div>
 
@@ -71,25 +64,23 @@ if (isset($_POST['update'])) {
     <div class="card">
         <div class="card-body">
 
-            <h5 class="mb-4">Form Edit Profil</h5>
-
             <form method="POST">
 
-                <!-- NAMA -->
                 <div class="form-group">
-                    <label>Nama</label>
-                    <input type="text" name="nama" class="form-control"
-                        value="<?= $row['nama'] ?>" required>
+                    <label>Nama Pengguna</label>
+                    <input type="text" name="nama" class="form-control" value="<?= $row['nama'] ?>" required>
                 </div>
 
-                <!-- EMAIL -->
                 <div class="form-group">
                     <label>Email</label>
-                    <input type="email" name="email" class="form-control"
-                        value="<?= $row['email'] ?>" required>
+                    <input type="email" name="email" class="form-control" value="<?= $row['email'] ?>" required>
                 </div>
 
-                <!-- JENIS KELAMIN -->
+                <div class="form-group">
+                    <label>Password (kosongkan jika tidak diubah)</label>
+                    <input type="password" name="password" class="form-control">
+                </div>
+
                 <div class="form-group">
                     <label>Jenis Kelamin</label>
                     <select name="jeniskelamin" class="form-control" required>
@@ -99,31 +90,21 @@ if (isset($_POST['update'])) {
                     </select>
                 </div>
 
-                <!-- NO HP -->
                 <div class="form-group">
                     <label>No HP</label>
-                    <input type="text" name="nohp" class="form-control"
-                        value="<?= $row['nohp'] ?>">
+                    <input type="text" name="nohp" class="form-control" value="<?= $row['nohp'] ?>" required>
                 </div>
 
-                <!-- ALAMAT -->
                 <div class="form-group">
                     <label>Alamat</label>
-                    <textarea name="alamat" class="form-control" rows="3"><?= $row['alamat'] ?></textarea>
+                    <textarea name="alamat" class="form-control" required><?= $row['alamat'] ?></textarea>
                 </div>
 
-                <!-- PASSWORD -->
-                <div class="form-group">
-                    <label>Password (Kosongkan jika tidak diubah)</label>
-                    <input type="password" name="password" class="form-control">
-                </div>
-
-                <!-- BUTTON -->
                 <button type="submit" name="update" class="btn btn-primary">
                     Update
                 </button>
 
-                <a href="index.php?page=dashboard" class="btn btn-secondary">
+                <a href="index.php?page=pengguna" class="btn btn-secondary">
                     Kembali
                 </a>
 
