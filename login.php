@@ -175,14 +175,21 @@ if (isset($_SESSION['user'])) {
                         </div>
 
                         <div class="mb-3">
-                            <div class="d-flex justify-content-between">
-                                <label class="form-label text-secondary small fw-medium mb-1">
-                                    <i class="bi bi-lock text-warning me-1"></i> Password
-                                </label>
-                            </div>
-                            <input type="password" name="password" id="password" class="form-control form-custom form-control-custom" 
-                                   placeholder="Masukkan password Anda" required>
-                        </div>
+    <div class="d-flex justify-content-between">
+        <label class="form-label text-secondary small fw-medium mb-1">
+            <i class="bi bi-lock text-warning me-1"></i> Password
+        </label>
+    </div>
+    
+    <div class="input-group">
+        <input type="password" name="password" id="password" class="form-control form-custom form-control-custom" 
+               placeholder="Masukkan password Anda" required>
+        
+        <button class="btn btn-outline-secondary" type="button" id="togglePassword" style="border-top-right-radius: 0.375rem; border-bottom-right-radius: 0.375rem;">
+            <i class="bi bi-eye" id="eyeIcon"></i>
+        </button>
+    </div>
+</div>
 
                        <div class="d-flex justify-content-between align-items-center mb-4 small">
                         <a href="lupapassword.php" class="text-decoration-none text-muted small">Lupa Kata Sandi</a>
@@ -226,6 +233,27 @@ if (isset($_SESSION['user'])) {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+    const togglePassword = document.querySelector('#togglePassword');
+    const password = document.querySelector('#password');
+    const eyeIcon = document.querySelector('#eyeIcon');
+
+    togglePassword.addEventListener('click', function () {
+        // Alihkan tipe input antara password dan text
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+        
+        // Alihkan ikon antara bi-eye (mata terbuka) dan bi-eye-slash (mata dicoret)
+        if (type === 'text') {
+            eyeIcon.classList.remove('bi-eye');
+            eyeIcon.classList.add('bi-eye-slash');
+        } else {
+            eyeIcon.classList.remove('bi-eye-slash');
+            eyeIcon.classList.add('bi-eye');
+        }
+    });
+</script>
 </body>
 
 </html>

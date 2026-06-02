@@ -18,7 +18,6 @@ $user = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT * FROM users WHERE id=
 $apikey = "MASUKKAN_API_KEY_RAJAONGKIR";
 $origin = 1391; // ORIGIN TOKO
 
-// Ambil data produk di keranjang terlebih dahulu untuk menghemat query database
 $subtotalbelanja = 0;
 $totalberat = 0;
 $produk_keranjang = [];
@@ -29,7 +28,9 @@ foreach ($keranjang as $idproduk => $qty) {
     $produk['subtotal'] = $produk['harga'] * $qty;
 
     $subtotalbelanja += $produk['subtotal'];
-    $totalberat += (1000 * $qty); // contoh berat 1000 gram / produk
+    // Ambil berat asli dari database jika tersedia, default 1000g jika kosong
+    $berat_produk = isset($produk['berat']) ? $produk['berat'] : 1000;
+    $totalberat += ($berat_produk * $qty); 
     $produk_keranjang[] = $produk;
 }
 
@@ -56,15 +57,12 @@ if (isset($_POST['checkout'])) {
 
     // INSERT DETAIL TRANSAKSI
     foreach ($keranjang as $idproduk => $qty) {
-
         $produk = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT * FROM produk WHERE id='$idproduk'"));
-
         $subtotal = $produk['harga'] * $qty;
-
         mysqli_query($koneksi, "INSERT INTO transaksidetail (transaksi_id, produk_id, jumlah, subtotal) VALUES ('$transaksi_id', '$idproduk', '$qty', '$subtotal')");
     }
 
-    // JIKA TRANSFER
+    // JIKA TRANSFER EFFECTIVE PROCESS
     if ($metodebayar == "Transfer") {
         $atasnama = mysqli_real_escape_string($koneksi, $_POST['atasnama']);
         $bank     = mysqli_real_escape_string($koneksi, $_POST['bank']);
@@ -73,8 +71,9 @@ if (isset($_POST['checkout'])) {
 
         if (!is_dir($folder)) mkdir($folder, 0777, true);
 
-        if (!empty($_FILES['buktibayar']['name'])) {
-            $bukti = time() . "_" . $_FILES['buktibayar']['name'];
+        if (isset($_FILES['buktibayar']) && $_FILES['buktibayar']['error'] === UPLOAD_ERR_OK) {
+            $fileExtension = pathinfo($_FILES['buktibayar']['name'], PATHINFO_EXTENSION);
+            $bukti = time() . "_" . bin2hex(random_bytes(4)) . "." . $fileExtension; // Rename aman
             move_uploaded_file($_FILES['buktibayar']['tmp_name'], $folder . $bukti);
         }
 
@@ -84,6 +83,7 @@ if (isset($_POST['checkout'])) {
 
     unset($_SESSION['keranjang']);
     echo "<script>alert('Checkout berhasil');location='riwayatdetail.php?id=$transaksi_id';</script>";
+    exit;
 }
 ?>
 
@@ -91,26 +91,26 @@ if (isset($_POST['checkout'])) {
     <h4 class="fw-bold mb-4">Checkout</h4>
     <form method="POST" enctype="multipart/form-data">
         <div class="row g-4">
-            <!-- FORM DATA PENERIMA -->
             <div class="col-lg-7">
                 <div class="card border-0 shadow-sm rounded-4">
                     <div class="card-body p-4">
                         <h5 class="fw-bold mb-4">Data Penerima</h5>
                         <div class="mb-3">
                             <label class="form-label">Nama</label>
-                            <input type="text" name="nama" class="form-control" value="<?= $user['nama'] ?>" required>
+                            <input type="text" name="nama" class="form-control" value="<?= htmlspecialchars($user['nama']) ?>" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Email</label>
-                            <input type="email" name="email" class="form-control" value="<?= $user['email'] ?>" required>
+                            <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($user['email']) ?>" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">No HP</label>
-                            <input type="text" name="nohp" class="form-control" value="<?= $user['nohp'] ?>" required>
+                            <input type="text" name="nohp" class="form-control" value="<?= htmlspecialchars($user['nohp']) ?>" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Alamat Lengkap</label>
-                            <textarea name="alamat" class="form-control" rows="4" required><?= $user['alamat'] ?></textarea>
+                            <textarea name="alamat" class="form-control bg-light" rows="3" readonly required><?= htmlspecialchars($user['alamat']) ?></textarea>
+                            <small class="text-muted">Alamat dikunci otomatis sesuai profile pendaftaran Anda.</small>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Provinsi</label>
@@ -125,9 +125,10 @@ if (isset($_POST['checkout'])) {
                             </select>
                         </div>
                         <input type="hidden" name="destination_id" id="destination_id">
+                        
                         <div class="mb-3">
                             <label class="form-label">Kode Pos</label>
-                            <input type="text" name="kodepos" id="kodepos" class="form-control" required>
+                            <input type="text" name="kodepos" id="kodepos" class="form-control bg-light" readonly required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Kurir</label>
@@ -143,12 +144,12 @@ if (isset($_POST['checkout'])) {
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Ongkir</label>
-                            <input type="text" id="ongkir_text" class="form-control" readonly>
-                            <input type="hidden" name="ongkir" id="ongkir">
+                            <input type="text" id="ongkir_text" class="form-control bg-light fw-bold text-dark" value="Rp 0" readonly>
+                            <input type="hidden" name="ongkir" id="ongkir" value="0">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Catatan</label>
-                            <textarea name="deskripsi" class="form-control"></textarea>
+                            <textarea name="deskripsi" class="form-control" placeholder="Tambahkan catatan khusus pengiriman jika ada..."></textarea>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Metode Pembayaran</label>
@@ -158,26 +159,39 @@ if (isset($_POST['checkout'])) {
                                 <option value="Transfer">Transfer</option>
                             </select>
                         </div>
-                        <!-- TRANSFER AREA -->
-                        <div id="transferArea" style="display:none;">
-                            <hr>
-                            <h6 class="fw-bold mb-3">Upload Pembayaran</h6>
-                            <div class="mb-3"><label class="form-label">Atas Nama</label><input type="text" name="atasnama" class="form-control"></div>
-                            <div class="mb-3"><label class="form-label">Bank</label><input type="text" name="bank" class="form-control"></div>
-                            <div class="mb-3"><label class="form-label">Bukti Bayar</label><input type="file" name="buktibayar" class="form-control"></div>
+                        
+                        <div id="transferArea" class="p-3 border rounded-3 bg-light" style="display:none;">
+                            <h6 class="fw-bold text-primary mb-3">Informasi Rekening Toko</h6>
+                            <div class="p-2 border border-dashed rounded bg-white mb-3">
+                                <p class="mb-1 small text-secondary">Silakan transfer tepat senilai Grand Total ke:</p>
+                                <p class="mb-0 fw-bold text-dark">BANK BCA: 123-4567-890 <br>A/N: BOOK MARKET OFFICIAL</p>
+                            </div>
+                            <h6 class="fw-bold mb-3">Konfirmasi Bukti Transfer</h6>
+                            <div class="mb-2">
+                                <label class="form-label small text-secondary">Atas Nama Pemilik Rekening Anda</label>
+                                <input type="text" name="atasnama" id="atasnama" class="form-control bg-white">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small text-secondary">Nama Bank Pengirim</label>
+                                <input type="text" name="bank" id="bank" class="form-control bg-white" placeholder="Contoh: Mandiri, BRI, BCA">
+                            </div>
+                            <div class="mb-0">
+                                <label class="form-label small text-secondary">Unggah Bukti Transaksi</label>
+                                <input type="file" name="buktibayar" id="buktibayar" class="form-control bg-white" accept="image/*">
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- RINGKASAN PESANAN -->
+            
             <div class="col-lg-5">
-                <div class="card border-0 shadow-sm rounded-4">
+                <div class="card border-0 shadow-sm rounded-4 position-sticky" style="top: 20px;">
                     <div class="card-body p-4">
                         <h5 class="fw-bold mb-4">Ringkasan Pesanan</h5>
                         <?php foreach ($produk_keranjang as $p) { ?>
                             <div class="d-flex justify-content-between mb-3">
                                 <div>
-                                    <h6 class="fw-bold mb-1"><?= $p['namaproduk'] ?></h6>
+                                    <h6 class="fw-bold mb-1"><?= htmlspecialchars($p['namaproduk']) ?></h6>
                                     <small class="text-muted"><?= $p['qty'] ?> x Rp <?= number_format($p['harga']) ?></small>
                                 </div>
                                 <div class="fw-bold text-primary">Rp <?= number_format($p['subtotal']) ?></div>
@@ -185,7 +199,7 @@ if (isset($_POST['checkout'])) {
                         <?php } ?>
                         <hr>
                         <div class="d-flex justify-content-between mb-2"><span>Subtotal</span><span>Rp <?= number_format($subtotalbelanja) ?></span></div>
-                        <div class="d-flex justify-content-between mb-3"><span>Ongkir</span><span id="ongkir_label">Rp 0</span></div>
+                        <div class="d-flex justify-content-between mb-3"><span>Ongkir</span><span id="ongkir_label" class="fw-bold">Rp 0</span></div>
                         <hr>
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class="fw-bold mb-0">Grand Total</h5>
@@ -201,51 +215,77 @@ if (isset($_POST['checkout'])) {
 
 <script>
     const subtotalBelanja = <?= $subtotalbelanja ?>;
+    const totalBerat = <?= $totalberat ?>; // Berat dinamis dari php keranjang
 
-    // AMBIL PROVINSI
+    // LOAD PROVINSI
     fetch('api/provinsi.php')
         .then(res => res.json())
         .then(result => {
             let provSelect = document.getElementById('provinsi');
             result.data.forEach(item => {
-                provSelect.innerHTML += `<option value="${item.name}" data-provinsi="${item.id}">${item.name}</option>`;
+                let opt = document.createElement('option');
+                opt.value = item.name;
+                opt.textContent = item.name;
+                opt.setAttribute('data-provinsi', item.id);
+                provSelect.appendChild(opt);
             });
         });
 
-    // AMBIL KOTA BERDASARKAN PROVINSI
+    // EVENT PROVINSI BERUBAH
     document.getElementById('provinsi').addEventListener('change', function() {
         let provinceId = this.options[this.selectedIndex].getAttribute('data-provinsi');
+        let kotaSelect = document.getElementById('kota');
+        let kodeposInput = document.getElementById('kodepos');
+        
+        kotaSelect.innerHTML = '<option value="">-- Pilih Kota --</option>';
+        kodeposInput.value = '';
+        document.getElementById('destination_id').value = '';
+        resetOngkir();
+
+        if(!provinceId) return;
+
         fetch('api/kota.php?id=' + provinceId)
             .then(res => res.json())
             .then(result => {
-                let kotaSelect = document.getElementById('kota');
-                kotaSelect.innerHTML = '<option value="">-- Pilih Kota --</option>';
                 result.data.forEach(item => {
-                    kotaSelect.innerHTML += `<option value="${item.name}" data-id="${item.id}" data-kodepos="${item.zip_code}">${item.name}</option>`;
+                    let opt = document.createElement('option');
+                    opt.value = item.name;
+                    opt.textContent = item.name;
+                    opt.setAttribute('data-id', item.id);
+                    opt.setAttribute('data-kodepos', item.zip_code || '');
+                    kotaSelect.appendChild(opt);
                 });
             });
     });
 
-    // PILIH KOTA
+    // EVENT KOTA BERUBAH
     document.getElementById('kota').addEventListener('change', function() {
         let selected = this.options[this.selectedIndex];
-        document.getElementById('destination_id').value = selected.getAttribute('data-id');
+        let destId = selected.getAttribute('data-id');
+        let zipCode = selected.getAttribute('data-kodepos');
+        
+        document.getElementById('destination_id').value = destId || '';
+        document.getElementById('kodepos').value = zipCode || '';
+        
         hitungOngkir();
     });
 
-    // PILIH KURIR
+    // EVENT KURIR BERUBAH
     document.getElementById('kurir').addEventListener('change', hitungOngkir);
 
-    // HITUNG ONGKIR VIA API
+    // LOGIKA HITUNG ONGKIR
     function hitungOngkir() {
         let destination = document.getElementById('destination_id').value;
         let courier = document.getElementById('kurir').value;
-        if (!destination || !courier) return;
+        if (!destination || !courier) {
+            resetOngkir();
+            return;
+        }
 
         let formData = new FormData();
         formData.append('origin', '<?= $origin ?>');
         formData.append('destination', destination);
-        formData.append('weight', 1000);
+        formData.append('weight', totalBerat); // Menggunakan total berat asli belanjaan
         formData.append('courier', courier);
         formData.append('price', 'lowest');
 
@@ -255,19 +295,36 @@ if (isset($_POST['checkout'])) {
             })
             .then(res => res.json())
             .then(result => {
-                let ongkir = result.data ? result.data[0].cost : 0;
+                let ongkir = (result.data && result.data.length > 0) ? parseInt(result.data[0].cost) : 0;
                 let grandtotal = subtotalBelanja + ongkir;
 
                 document.getElementById('ongkir').value = ongkir;
                 document.getElementById('ongkir_text').value = 'Rp ' + ongkir.toLocaleString('id-ID');
                 document.getElementById('ongkir_label').innerHTML = 'Rp ' + ongkir.toLocaleString('id-ID');
                 document.getElementById('grandtotal').innerHTML = 'Rp ' + grandtotal.toLocaleString('id-ID');
+            })
+            .catch(err => {
+                console.error("Gagal mengambil data ongkir:", err);
+                resetOngkir();
             });
     }
 
-    // SHOW/HIDE AREA TRANSFER
+    function resetOngkir() {
+        document.getElementById('ongkir').value = 0;
+        document.getElementById('ongkir_text').value = 'Rp 0';
+        document.getElementById('ongkir_label').innerHTML = 'Rp 0';
+        document.getElementById('grandtotal').innerHTML = 'Rp ' + subtotalBelanja.toLocaleString('id-ID');
+    }
+
+    // CONTROL AREA TRANSFER & VALIDASI MANDATORI
     document.getElementById('metodebayar').addEventListener('change', function() {
-        document.getElementById('transferArea').style.display = (this.value === 'Transfer') ? 'block' : 'none';
+        let isTransfer = (this.value === 'Transfer');
+        document.getElementById('transferArea').style.display = isTransfer ? 'block' : 'none';
+        
+        // Buat input transfer required jika opsi transfer dipilih
+        document.getElementById('atasnama').required = isTransfer;
+        document.getElementById('bank').required = isTransfer;
+        document.getElementById('buktibayar').required = isTransfer;
     });
 </script>
 
