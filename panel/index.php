@@ -118,12 +118,9 @@ function limit_text($html, $limit = 120)
 
                         <li class="icons dropdown">
                             <div class="user-img c-pointer position-relative" data-toggle="dropdown">
-                                <span class="activity active"></span>
-                                <img src="../assets/panel/images/user/1.png"
-                                    height="40"
-                                    width="40"
-                                    alt="">
-                            </div>
+    <span class="activity active"></span>
+    <i class="icon-user" style="font-size:20px;"></i>
+</div>
 
                             <div class="drop-down dropdown-profile animated fadeIn dropdown-menu">
                                 <div class="dropdown-content-body">
@@ -396,7 +393,7 @@ function limit_text($html, $limit = 120)
         ***********************************-->
         <div class="footer">
             <div class="copyright">
-                <p>Copyright &copy; Designed & Developed by <a href="index.php?page=dashboard">Book Market</a> <?= date('Y'); ?></p>
+                <p><a href="index.php?page=dashboard">Book Market</a> <?= date('Y'); ?></p>
             </div>
         </div>
         <!--**********************************
