@@ -12,27 +12,25 @@ $page = basename($_SERVER['PHP_SELF']);
 
     <div class="d-flex justify-content-around text-center">
 
-        <div>
-            <a href="index.php"
-                class="text-decoration-none <?= ($page == 'index.php') ? 'text-primary' : 'text-muted' ?>">
-
-                <i class="bi bi-house-door-fill d-block"></i>
-
-                <small style="font-size: 0.7rem;">
-                    Home
-                </small>
-
-            </a>
-        </div>
+<div>
+    <a href="index.php" 
+       class="text-decoration-none" 
+       style="color: <?= ($page == 'index.php' || $page == 'home') ? '#5a67d8' : '#6c757d' ?>;">
+        
+        <i class="bi bi-house-door-fill d-block"></i>
+        <small style="font-size: 0.7rem;">
+            Home
+        </small>
+    </a>
+</div>
 
         <div>
             <a href="produk.php"
-                class="text-decoration-none <?= ($page == 'produk.php' || $page == 'produkdetail.php') ? 'text-primary' : 'text-muted' ?>">
-
-                <i class="bi bi-bag-fill d-block"></i>
-
+                class="text-decoration-none" 
+                style="color: <?= ($page == 'produk.php' || $page == 'produkdetail.php') ? '#5a67d8' : '#6c757d' ?>;">
+                <i class="bi bi-book-fill d-block"></i>
                 <small style="font-size: 0.7rem;">
-                    Order
+                    Produk
                 </small>
 
             </a>
@@ -40,7 +38,8 @@ $page = basename($_SERVER['PHP_SELF']);
 
         <div>
             <a href="keranjang.php"
-                class="text-decoration-none <?= ($page == 'keranjang.php' || $page == 'checkout.php') ? 'text-primary' : 'text-muted' ?>">
+                class="text-decoration-none" 
+                style="color: <?= ($page == 'keranjang.php' || $page == 'checkout.php') ? '#5a67d8' : '#6c757d' ?>;">
 
                 <i class="bi bi-cart-fill d-block"></i>
 
@@ -53,7 +52,8 @@ $page = basename($_SERVER['PHP_SELF']);
 
         <div>
             <a href="akun.php"
-                class="text-decoration-none <?= ($page == 'akun.php') ? 'text-primary' : 'text-muted' ?>">
+                class="text-decoration-none" 
+                style="color: <?= ($page == 'akun.php') ? '#5a67d8' : '#6c757d' ?>;">
 
                 <i class="bi bi-person-fill d-block"></i>
 

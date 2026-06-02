@@ -13,7 +13,7 @@ include 'koneksi.php';
     <title>Book Market</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         :root {
             --bs-primary: #A65D37;
@@ -103,73 +103,52 @@ include 'koneksi.php';
     <nav class="navbar navbar-light bg-white sticky-top border-bottom">
         <div class="container d-flex justify-content-between align-items-center">
 
-            <div>
-                <small class="text-muted d-block" style="font-size: 0.7rem;">
-                    Lokasi
-                </small>
+            <div class="d-flex align-items-center gap-2">
+        <img src="assets/logo/bookstore_logo.png" alt="Logo" class="rounded-circle" style="width: 45px; height: 45px; object-fit: cover;">
+    
+        <span class="fw-bold text-dark small">
+            Coolcat Bookstore
+        </span>
+    </div>
+    
+    <div>
+<div>
+        <?php
+        $totalKeranjang = 0;
 
-                <div class="dropdown">
-                    <button class="btn btn-sm dropdown-toggle p-0 fw-bold" type="button">
-                        <i class="bi bi-geo-alt-fill text-danger"></i>
-                        Palembang, IDN
-                    </button>
-                </div>
-            </div>
+        if (isset($_SESSION['keranjang'])) {
+            foreach ($_SESSION['keranjang'] as $qty) {
+                $totalKeranjang += $qty;
+            }
+        }
+        ?>
 
-            <div>
+        <?php if (!isset($_SESSION['user'])): ?>
 
-                <?php
-                $totalKeranjang = 0;
+            <a href="login.php" class="btn btn-light rounded-circle">
+                <i class="bi bi-person"></i>
+            </a>
 
-                if (isset($_SESSION['keranjang'])) {
+        <?php else: ?>
 
-                    foreach ($_SESSION['keranjang'] as $qty) {
-                        $totalKeranjang += $qty;
-                    }
-                }
-                ?>
-
-                <?php if (!isset($_SESSION['user'])): ?>
-
-                    <a href="login.php"
-                        class="btn btn-light rounded-circle">
-
-                        <i class="bi bi-person"></i>
-
-                    </a>
-
-                <?php else: ?>
-
-                    <!-- KERANJANG -->
-                    <a href="keranjang.php"
-                        class="btn btn-light rounded-circle me-2 position-relative">
-
-                        <i class="bi bi-cart"></i>
-
-                        <?php if ($totalKeranjang > 0): ?>
-
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                style="font-size:10px;">
-
-                                <?= $totalKeranjang ?>
-
-                            </span>
-
-                        <?php endif; ?>
-
-                    </a>
-
-                    <!-- AKUN -->
-                    <a href="akun.php"
-                        class="btn btn-light rounded-circle">
-
-                        <i class="bi bi-person-fill"></i>
-
-                    </a>
-
+            <a href="keranjang.php" class="btn btn-light rounded-circle me-2 position-relative">
+                <i class="bi bi-cart"></i>
+                <?php if ($totalKeranjang > 0): ?>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:10px;">
+                        <?= $totalKeranjang ?>
+                    </span>
                 <?php endif; ?>
+            </a>
 
-            </div>
+            <a href="akun.php" class="btn btn-light rounded-pill px-3 d-inline-flex align-items-center gap-2">
+                <i class="bi bi-person-fill text-secondary"></i>
+                <span class="fw-semibold small text-dark d-none d-sm-inline">
+                    <?= htmlspecialchars($_SESSION['user']['nama']) ?>
+                </span>
+            </a>
+
+        <?php endif; ?>
+    </div>
 
         </div>
     </nav>
