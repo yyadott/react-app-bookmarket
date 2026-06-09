@@ -1,22 +1,20 @@
 <?php
 session_start();
+
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+
 require_once '../koneksi.php';
+
 if (!isset($_SESSION['user'])) {
-    echo "<script>alert('Silahkan login terlebih dahulu'); window.location='../login.php';</script>";
+    header("Location: ../login.php");
     exit;
 }
 
-function limit_text($html, $limit = 120)
-{
-    $text = strip_tags($html);
-
-    $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
-
-    if (strlen($text) <= $limit) {
-        return $text;
-    }
-
-    return substr($text, 0, $limit) . '...';
+if ($_SESSION['user']['role'] != 'Admin') {
+    header("Location: ../index.php");
+    exit;
 }
 ?>
 

@@ -8,16 +8,13 @@ if (!$transaksi) {
 }
 
 if (isset($_POST['update_status'])) {
+
     $status = mysqli_real_escape_string($koneksi, $_POST['status']);
 
-    if ($status === 'Diterima' && $transaksi['status'] !== 'Diterima') {
-        $q_items = mysqli_query($koneksi, "SELECT produk_id, jumlah FROM transaksidetail WHERE transaksi_id='$id'");
-        while ($item = mysqli_fetch_assoc($q_items)) {
-            $p_id = $item['produk_id'];
-            $qty = intval($item['jumlah']);
+    $allowedStatus = ['Diterima', 'Selesai', 'Ditolak'];
 
-            mysqli_query($koneksi, "UPDATE produk SET stok = stok - $qty WHERE id='$p_id'");
-        }
+    if (!in_array($status, $allowedStatus)) {
+        die('Status tidak valid');
     }
 
     mysqli_query($koneksi, "UPDATE transaksi SET status='$status' WHERE id='$id'");
@@ -96,21 +93,11 @@ $badge = $badges[$transaksi['status']] ?? 'secondary';
                 </tr>
             </table>
 
-            <form method="POST" class="row g-2 mb-5 align-items-end">
-                <div class="col-md-4 col-sm-8">
-                    <label class="form-label fw-semibold">Update Status Transaksi</label>
-                    <select name="status" class="form-select form-control" required>
-                        <?php
-                        $statusList = ["Menunggu Konfirmasi", "Belum Bayar", "Sudah Bayar", "Diterima", "Selesai", "Ditolak"];
-                        foreach ($statusList as $s): ?>
-                            <option value="<?= $s ?>" <?= $transaksi['status'] == $s ? 'selected' : '' ?>><?= $s ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="col-md-2 col-sm-4">
-                    <button type="submit" name="update_status" class="btn btn-primary w-100">Update Status</button>
-                </div>
-            </form>
+            <select name="status" class="form-select form-control" required>
+    <option value="Diterima">Diterima</option>
+    <option value="Selesai">Selesai</option>
+    <option value="Ditolak">Ditolak</option>
+</select>
 
             <h5 class="mb-3 fw-bold">Detail Produk</h5>
             <div class="table-responsive mb-5">

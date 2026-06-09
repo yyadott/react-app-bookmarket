@@ -5,7 +5,7 @@ require_once 'koneksi.php';
 if (isset($_SESSION['user'])) {
     header("Location: panel");
     exit;
-}
+}   
 ?>
 
 <!DOCTYPE html>
