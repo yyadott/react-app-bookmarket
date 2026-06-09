@@ -289,7 +289,7 @@ $keranjang = $_SESSION['keranjang'];
                         </div>
 
                         <div class="d-flex justify-content-between align-items-baseline mb-1">
-                            <span class="fw-bold text-dark" style="font-size: 0.9rem;">Total Harga Booking</span>
+                            <span class="fw-bold text-dark" style="font-size: 0.9rem;">Total Harga</span>
                             <h4 class="fw-black text-dark" style="font-weight: 800; font-size: 1.4rem;">Rp <?= number_format($grandtotal, 0, ',', '.') ?></h4>
                         </div>
                         <p class="text-muted" style="font-size: 0.75rem; margin-bottom: 2rem;">Harga keseluruhan dan termasuk diskon</p>
