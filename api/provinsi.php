@@ -1,35 +1,48 @@
 <?php
-
+// api/provinsi.php
+ob_clean(); 
 header('Content-Type: application/json');
 
 $apikey = "7ff8406f12c653758df1a5fa6d6bf474";
-
 $url = "https://rajaongkir.komerce.id/api/v1/destination/province";
 
-$ch = curl_init();
+// Ganti cURL dengan Stream Context HTTP bawaan PHP
+$options = [
+    "http" => [
+        "method" => "GET",
+        "header" => "key: " . $apikey . "\r\n"
+    ]
+];
+$context = stream_context_create($options);
+$response = @file_get_contents($url, false, $context);
 
-curl_setopt($ch, CURLOPT_URL, $url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    "Key: $apikey"
-]);
-
-$response = curl_exec($ch);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-curl_close($ch);
-
-// error handling
-if ($httpCode != 200) {
+if ($response === FALSE) {
     echo json_encode([
-        "meta" => [
-            "status" => "error",
-            "message" => "API error"
-        ],
+        "status" => "error",
+        "message" => "Gagal mengambil data dari server API Komerce.",
         "data" => []
     ]);
     exit;
 }
 
-echo $response;
+$data_asli = json_decode($response, true);
+$data_terformat = [];
+
+$list_provinsi = isset($data_asli['data']) ? $data_asli['data'] : (is_array($data_asli) ? $data_asli : null);
+
+if (is_array($list_provinsi)) {
+    foreach ($list_provinsi as $item) {
+        $id = isset($item['id']) ? $item['id'] : (isset($item['province_id']) ? $item['province_id'] : '');
+        $name = isset($item['name']) ? $item['name'] : (isset($item['province_name']) ? $item['province_name'] : (isset($item['label']) ? $item['label'] : ''));
+        
+        if ($id !== '' && $name !== '') {
+            $data_terformat[] = [
+                'id'   => $id,
+                'name' => $name
+            ];
+        }
+    }
+    echo json_encode(["status" => "success", "data" => $data_terformat]);
+} else {
+    echo json_encode(["status" => "error", "message" => "Format data tidak dikenali", "data" => []]);
+}
